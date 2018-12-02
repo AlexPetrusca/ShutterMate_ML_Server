@@ -1,6 +1,6 @@
 from fastai.conv_learner import ConvLearner
 from fastai.dataset import ImageClassifierData, tfms_from_model, open_image
-from fastai.torch_imports import resnext101_64
+from fastai.torch_imports import resnext101_64, resnext50
 from flask import Flask, request
 from collections import defaultdict
 from functools import partial
@@ -12,7 +12,8 @@ import cv2
 import imutils
 
 sz = 227
-arch = resnext101_64
+arch_101 = resnext101_64
+arch_50 = resnext50
 app = Flask(__name__)
 
 
@@ -32,17 +33,17 @@ class Stockfish:
 
 
 def init_models():
-    data_empty = ImageClassifierData.from_paths('assets/models/empty', tfms=tfms_from_model(arch, sz))
-    learn_empty = ConvLearner.pretrained(arch, data_empty, precompute=False)
-    learn_empty.load('empty')
+    data_empty = ImageClassifierData.from_paths('assets/models/empty', tfms=tfms_from_model(arch_50, sz))
+    learn_empty = ConvLearner.pretrained(arch_50, data_empty, precompute=False)
+    learn_empty.load('empty_50')
 
-    data_color = ImageClassifierData.from_paths('assets/models/color', tfms=tfms_from_model(arch, sz))
-    learn_color = ConvLearner.pretrained(arch, data_color, precompute=False)
-    learn_color.load('color')
+    data_color = ImageClassifierData.from_paths('assets/models/color', tfms=tfms_from_model(arch_50, sz))
+    learn_color = ConvLearner.pretrained(arch_50, data_color, precompute=False)
+    learn_color.load('color_50')
 
-    data_type = ImageClassifierData.from_paths('assets/models/type', tfms=tfms_from_model(arch, sz))
-    learn_type = ConvLearner.pretrained(arch, data_type, precompute=False)
-    learn_type.load('type')
+    data_type = ImageClassifierData.from_paths('assets/models/type', tfms=tfms_from_model(arch_101, sz))
+    learn_type = ConvLearner.pretrained(arch_101, data_type, precompute=False)
+    learn_type.load('type_101')
 
     return learn_empty, learn_color, learn_type
 
@@ -61,19 +62,21 @@ def get_fen_char(pred_type, pred_color):
 def get_prediction_fen(splits, learn_empty, learn_color, learn_type):
     fen = ""
     preds = []
-    trn_tfms, val_tfms = tfms_from_model(arch, sz)
+    trn_tfms_50, val_tfms_50 = tfms_from_model(arch_50, sz)
+    trn_tfms_101, val_tfms_101 = tfms_from_model(arch_101, sz)
 
     for split, i in zip(splits, range(64)):
         if i is not 0 and i % 8 is 0:
             preds.append('/')
 
-        split_im = val_tfms(split)
-        preds_empty = learn_empty.predict_array(split_im[None])
+        split_im_50 = val_tfms_50(split)
+        split_im_101 = val_tfms_101(split)
+        preds_empty = learn_empty.predict_array(split_im_50[None])
         pred_empty = learn_empty.data.classes[np.argmax(preds_empty)]
         if pred_empty != "empty":
-            preds_color = learn_color.predict_array(split_im[None])
+            preds_color = learn_color.predict_array(split_im_50[None])
             pred_color = learn_color.data.classes[np.argmax(preds_color)]
-            preds_type = learn_type.predict_array(split_im[None])
+            preds_type = learn_type.predict_array(split_im_101[None])
             pred_type = learn_type.data.classes[np.argmax(preds_type)]
 
             pred = get_fen_char(pred_type, pred_color)
