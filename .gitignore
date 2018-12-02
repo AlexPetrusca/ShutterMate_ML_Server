@@ -7,4 +7,3 @@ ChessVision.py
 contrast.py
 contrastGrey.py
 hough.py
-*.h5
