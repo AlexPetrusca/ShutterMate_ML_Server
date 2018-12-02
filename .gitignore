@@ -1,0 +1,10 @@
+.idea/
+venv/
+out/
+ChessEngine.py
+ChessPredict.py
+ChessVision.py
+contrast.py
+contrastGrey.py
+hough.py
+*.h5
