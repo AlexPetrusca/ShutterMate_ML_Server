@@ -1,4 +1,4 @@
-torch==0.3.1
+http://download.pytorch.org/whl/cu90/torch-0.4.0-cp36-cp36m-win_amd64.whl
 torchvision
 torchtext==0.2.3
 fastai==0.7.0

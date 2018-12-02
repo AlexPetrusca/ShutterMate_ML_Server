@@ -48,7 +48,7 @@ def init_models():
 
 
 def init_stockfish():
-    return Stockfish('assets/engine/stockfish_10_x64')
+    return Stockfish('assets/engine/stockfish_10_x64.exe')
 
 
 def get_fen_char(pred_type, pred_color):
